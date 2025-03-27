@@ -38,6 +38,7 @@ import customizeApplication from './lib/startup/customizeApplication'
 import customizeEasterEgg from './lib/startup/customizeEasterEgg' // vuln-code-snippet hide-line
 
 import authenticatedUsers from './routes/authenticatedUsers'
+import rateLimit from 'express-rate-limit'
 
 const startTime = Date.now()
 const finale = require('finale-rest')
@@ -601,12 +602,17 @@ restoreOverwrittenFilesWithOriginals().then(() => {
   app.get('/rest/chatbot/status', chatbot.status())
   app.post('/rest/chatbot/respond', chatbot.process())
   /* NoSQL API endpoints */
-  app.get('/rest/products/:id/reviews', showProductReviews())
+  app.get('/rest/products/:id/reviews', limiter, showProductReviews())
   app.put('/rest/products/:id/reviews', createProductReviews())
   app.patch('/rest/products/reviews', security.isAuthorized(), updateProductReviews())
   app.post('/rest/products/reviews', security.isAuthorized(), likeProductReviews())
 
   /* Web3 API endpoints */
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // max 100 requests per windowMs
+  });
+
   app.post('/rest/web3/submitKey', checkKeys.checkKeys())
   app.get('/rest/web3/nftUnlocked', checkKeys.nftUnlocked())
   app.get('/rest/web3/nftMintListen', nftMint.nftMintListener())
