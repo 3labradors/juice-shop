@@ -601,17 +601,19 @@ restoreOverwrittenFilesWithOriginals().then(() => {
   app.get('/rest/memories', memory.getMemories())
   app.get('/rest/chatbot/status', chatbot.status())
   app.post('/rest/chatbot/respond', chatbot.process())
+  
+  /* Web3 API endpoints */
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 200, // max 100 requests per windowMs
+  });
+
   /* NoSQL API endpoints */
+
   app.get('/rest/products/:id/reviews', limiter, showProductReviews())
   app.put('/rest/products/:id/reviews', createProductReviews())
   app.patch('/rest/products/reviews', security.isAuthorized(), updateProductReviews())
   app.post('/rest/products/reviews', security.isAuthorized(), likeProductReviews())
-
-  /* Web3 API endpoints */
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // max 100 requests per windowMs
-  });
 
   app.post('/rest/web3/submitKey', checkKeys.checkKeys())
   app.get('/rest/web3/nftUnlocked', checkKeys.nftUnlocked())
